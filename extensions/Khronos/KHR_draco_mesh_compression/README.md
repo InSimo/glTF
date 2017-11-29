@@ -7,6 +7,7 @@
 * Frank Galligan, Google, <mailto:fgalligan@google.com>
 * Kai Ninomiya, Google, <mailto:kainino@google.com>
 * Patrick Cozzi, Cesium, [@pjcozzi](https://twitter.com/pjcozzi)
+* Jeremie Allard, InSimo, [@JeremieA](https://twitter.com/JeremieAllard)
 
 Copyright (C) 2013-2017 The Khronos Group Inc. All Rights Reserved. glTF is a trademark of The Khronos Group Inc.
 See [Appendix](#appendix-full-khronos-copyright-statement) for full Khronos Copyright Statement.
@@ -67,8 +68,18 @@ Below is an example of what a part of a glTF file my look like if the Draco exte
                 "WEIGHTS_0" : 14,
                 "JOINTS_0" : 15,
             },
+            "targets" : [
+                {
+                    "POSITION" : 16,
+                    "NORMAL" : 17
+                },
+                {
+                    "POSITION" : 18,
+                    "NORMAL" : 19
+                }
+            ],
             "indices" : 10,
-            "mode" : 4
+            "mode" : 4,
             "extensions" : {
                 "KHR_draco_mesh_compression" : {
                     "bufferView" : 5,
@@ -79,9 +90,19 @@ Below is an example of what a part of a glTF file my look like if the Draco exte
                         "WEIGHTS_0" : 3,
                         "JOINTS_0" : 4
                     },
+                    "targets" : [
+                        {
+                            "POSITION" : 5,
+                            "NORMAL" : 6
+                        },
+                        {
+                            "POSITION" : 7,
+                            "NORMAL" : 8
+                        }
+                    ]
                 }
             }
-        },
+        }
     ]
 }
 
@@ -103,6 +124,11 @@ The `bufferView` property points to the buffer containing compressed data. The d
 ### attributes
 `attributes` defines the attributes stored in the decompressed geometry. E.g, in the example above, `POSITION`, `NORMAL`, `TEXCOORD_0`, `WEIGHTS_0` and `JOINTS_0`. Each attribute is associated with an attribute id which is its unique id in the compressed data. The `attributes` defined in the extension must be a subset of the attributes of the primitive. To request an attribute, loaders must be able to use the correspondent attribute id specified in the `attributes` to get the attribute from the compressed data.
 
+### targets
+For mesh primitives defining Morph Targets, `targets` defines the Morph Targets attributes stored in the decompressed geometry. E.g, in the example above, `POSITION` and `NORMAL` for two morph targets. If present in this extension, `targets` must be an array with the same number of items as the targets array within the primitive.
+Within each target array item, each attribute is associated with an attribute id which is its unique id in the compressed data. The `targets` attributes defined in the extension must be a subset of the targets attributes of the primitive. To request an target attribute, loaders must be able to use the correspondent target index and attribute id specified in the `targets` to get the attribute from the compressed data.
+Note that it is allowed for an item within `targets` of this extension to be empty, indicating that there is no attribute stored in the compressed data for the corresponding Morph Target.
+
 #### Restrictions on geometry type
 When using this extension, the `mode` of `primitive` must be either `TRIANGLES` or `TRIANGLE_STRIP` and the mesh data will be decoded accordingly.
 
@@ -121,8 +147,8 @@ Below is the recommended process when a loader encounters a glTF asset with the 
 * If the loader does support the Draco extension, but will not process `KHR_draco_mesh_compression`, then the loader must load the glTF asset ignoring `KHR_draco_mesh_compression` in `primitive`.
 * If the loader does support the Draco extension, and will process `KHR_draco_mesh_compression` then:
     * The loader must process `KHR_draco_mesh_compression` first. The loader must get the data from `KHR_draco_mesh_compression`'s `bufferView` property and decompress the data using a Draco decoder to a Draco geometry.
-    * Then the loader must process `attributes` and `indices` properties of the `primitive`. When loading each `accessor`, you must ignore the `bufferView` and go to the previously decoded Draco geometry in the `primitive` to get the data of indices and attributes. A loader must use the decompressed data to fill the `accessors` or render the decompressed Draco geometry directly (e.g. [ThreeJS (non-normative)](https://github.com/mrdoob/three.js/blob/dev/examples/js/loaders/draco/DRACOLoader.js)).
-    * If additional attributes are defined in `primitive`'s `attributes`, but not defined in `KHR_draco_mesh_compression`'s `attributes`, then the loader must process the additional attributes as usual.
+    * Then the loader must process `attributes`, `targets` (if present), and `indices` properties of the `primitive`. When loading each `accessor`, you must ignore the `bufferView` and go to the previously decoded Draco geometry in the `primitive` to get the data of indices and attributes. A loader must use the decompressed data to fill the `accessors` or render the decompressed Draco geometry directly (e.g. [ThreeJS (non-normative)](https://github.com/mrdoob/three.js/blob/dev/examples/js/loaders/draco/DRACOLoader.js)).
+    * If additional attributes are defined in `primitive`'s `attributes` or within an item in `targets` (if present), but not defined in `KHR_draco_mesh_compression`'s `attributes` or corresponding `targets` item, then the loader must process the additional attributes as usual.
 
 ## Implementation note
 
