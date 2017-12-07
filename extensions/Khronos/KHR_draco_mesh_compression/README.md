@@ -132,6 +132,9 @@ Note that it is allowed for an item within `targets` of this extension to be emp
 #### Restrictions on geometry type
 When using this extension, the `mode` of `primitive` must be either `TRIANGLES` or `TRIANGLE_STRIP` and the mesh data will be decoded accordingly.
 
+#### Restrictions on accessors ids
+To facilitate converting between compressed and uncompressed versions, and allow loaders to implement decoding as a preprocess step, the accessor ids used for `attributes` and `targets` within the primitive must be used for a unique compressed mesh and attribute. Multiple primitives can refer to the same accessor only if it is associated with the same draco compressed geometry and draco attribute id within it. This is similar to the standard case where the data for a given accessor is unique.
+
 ### JSON Schema
 
 For full details on the `KHR_draco_mesh_compression` extension properties, see the schema:
